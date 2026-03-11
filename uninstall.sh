@@ -12,7 +12,7 @@ DIRECTORY="$(readlink -f "$(dirname "$0")")"
 
 # Prompt to remove YAD if installed
 if ! dpkg-query -W --showformat='${Status}\n' yad 2>/dev/null | grep -q "install ok installed"; then
-  zenity --title='Pi-Apps' --window-icon="${DIRECTORY}/icons/logo.png" \
+  zenity --title='Pi-Apps-Amd64' --window-icon="${DIRECTORY}/icons/logo.png" \
       --list --text="Do you want to uninstall YAD?" \
       --ok-label=Yes --cancel-label=No \
       --column=foo --hide-header 2>/dev/null && \
@@ -31,5 +31,5 @@ echo "Removing terminal command..."
 sudo rm -f /usr/local/bin/pi-apps
 
 echo -e "\e[32mUninstallation complete.\e[97m Only $HOME/pi-apps still remains.
-If Pi-Apps didn't work for you, \e[4m\e[21m\e[5mPLEASE\e[0m\e[97m consider submitting a \e[1mbug report\e[0m!
+If Pi-Apps-Amd64 didn't work for you, \e[4m\e[21m\e[5mPLEASE\e[0m\e[97m consider submitting a \e[1mbug report\e[0m!
 --> \e[96mhttps://github.com/Jaypph/pi-apps-amd64/issues/new\e[39m"
