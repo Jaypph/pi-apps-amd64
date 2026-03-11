@@ -14,7 +14,7 @@ cd "$HOME"
 
 # Ensure non-root
 if [[ "$(id -u)" == 0 ]]; then
-  error "Pi-Apps is not designed to be installed as root! Run as regular user."
+  error "Pi-Apps-Amd64 is not designed to be installed as root! Run as regular user."
 fi
 
 # Ensure apt exists
@@ -57,27 +57,27 @@ sudo rm -f /usr/share/applications/yad-icon-browser.desktop
 # -----------------------
 # Download Pi-Apps
 # -----------------------
-DIRECTORY="$HOME/pi-apps"
+DIRECTORY="$HOME/Pi-Apps-Amd64"
 downloaded=0
 
 if [ -d "$DIRECTORY" ];then
-  echo "Reinstalling Pi-Apps..."
+  echo "Reinstalling Pi-Apps-Amd64..."
   downloaded=1
   rm -rf ~/pi-apps-forced-update
   output="$(git clone --depth 1 https://github.com/Botspot/pi-apps ~/pi-apps-forced-update 2>&1)"
   if [ $? != 0 ]; then
-    error "Pi-Apps download failed!\ngit clone output was: $output"
+    error "Pi-Apps-Amd64 download failed!\ngit clone output was: $output"
   fi
   cp -af "${DIRECTORY}/data" ~/pi-apps-forced-update
   cp -af "${DIRECTORY}/apps" ~/pi-apps-forced-update
   rm -rf "$DIRECTORY"
   mv -f ~/pi-apps-forced-update "$DIRECTORY"
 else
-  echo "Downloading Pi-Apps..."
+  echo "Downloading Pi-Apps-Amd64..."
   downloaded=1
   output="$(git clone --depth 1 https://github.com/Botspot/pi-apps "$DIRECTORY" 2>&1)"
   if [ $? != 0 ]; then
-    error "Pi-Apps download failed!\ngit clone output was: $output"
+    error "Pi-Apps-Amd64 download failed!\ngit clone output was: $output"
   fi
   "${DIRECTORY}/api" shlink_link script install
 fi
@@ -96,7 +96,7 @@ fi
 # -----------------------
 mkdir -p ~/.local/share/applications
 echo "[Desktop Entry]
-Name=Pi-Apps
+Name=Pi-Apps-Amd64
 Comment=Raspberry Pi App Store (AMD64 Patched)
 Exec=${DIRECTORY}/gui
 Icon=${DIRECTORY}/icons/logo.png
@@ -124,12 +124,12 @@ cp -f ${DIRECTORY}/icons/settings.png ~/.local/share/icons/pi-apps-settings.png
 # Settings menu
 # -----------------------
 echo "[Desktop Entry]
-Name=Pi-Apps Settings
-Comment=Configure Pi-Apps or create an App
+Name=Pi-Apps-Amd64 Settings
+Comment=Configure Pi-Apps-Amd64 or create an App
 Exec=${DIRECTORY}/settings
 Icon=${DIRECTORY}/icons/settings.png
 Terminal=false
-StartupWMClass=Pi-Apps-Settings
+StartupWMClass=Pi-Apps-Amd64-Settings
 Type=Application
 Categories=Settings;
 StartupNotify=true" > ~/.local/share/applications/pi-apps-settings.desktop
