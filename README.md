@@ -30,7 +30,7 @@ Scripts download apps from their original sources, offering maximum flexibility.
 Open a terminal and run:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/Jaypph/pi-apps-amd64/master/install.sh | bash
+curl -L https://raw.githubusercontent.com/Jaypph/pi-apps-amd64/master/install.sh | bash
 ```
 
 ---
