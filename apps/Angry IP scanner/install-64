@@ -1,9 +1,26 @@
 #!/bin/bash
 
+# -------------------------------
+# Pi-Apps amd64 version: Angry IP Scanner
+# -------------------------------
+
 version=3.9.3
-adoptium_installer || exit 1
-# install temurin-17-jre first so that when apt looks for "Provides: java11-runtime" to satisfy ipscan dependencies it will be there
-install_packages temurin-17-jre libswt-cairo-gtk-4-jni libswt-gtk-4-java libswt-gtk-4-jni || exit 1
-install_packages rpm fakeroot "https://github.com/angryip/ipscan/releases/download/${version}/ipscan_${version}_all.deb" || exit 1
-# hack due to upstream bug: https://github.com/adoptium/temurin-build/issues/3552
-sudo sed -i 's,UNNAMED -jar,UNNAMED -Djava.library.path=/usr/lib/java:/usr/lib/jni -jar,g' /usr/bin/ipscan || true
+
+# Installer Temurin JRE (Java 17)
+sudo apt update || exit 1
+sudo apt install -y temurin-17-jre libswt-cairo-gtk-4-jni libswt-gtk-4-java libswt-gtk-4-jni || exit 1
+
+# Installer nødvendige pakker til .deb
+sudo apt install -y rpm fakeroot wget || exit 1
+
+# Download og installer ipscan
+wget -O /tmp/ipscan_${version}_all.deb "https://github.com/angryip/ipscan/releases/download/${version}/ipscan_${version}_all.deb"
+sudo dpkg -i /tmp/ipscan_${version}_all.deb || sudo apt -f install -y
+rm -f /tmp/ipscan_${version}_all.deb
+
+# Fix java path (kun hvis nødvendigt på amd64)
+if [ -f /usr/bin/ipscan ]; then
+    sudo sed -i 's,UNNAMED -jar,UNNAMED -Djava.library.path=/usr/lib/java:/usr/lib/jni -jar,g' /usr/bin/ipscan || true
+fi
+
+echo "Angry IP Scanner (${version}) er installeret og klar på amd64!"
