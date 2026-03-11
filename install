@@ -12,18 +12,19 @@ if [[ "$(id -u)" == 0 ]]; then
   error "Pi-Apps is not designed to be installed as root! Please try again as a regular user."
 fi
 
-#ensure debian
-command -v apt >/dev/null || error "apt: command not found. Most likely this system is not running Debian."
+#ensure Debian-based
+command -v apt >/dev/null || error "apt: command not found. Most likely this system is not running Debian/Ubuntu based Linux."
 
-#Ensure running arm processor
-if uname -m | grep -qi 'x86\|i686\|i386' ;then
-  error "Pi-Apps is not supported on non-ARM CPU architectures. We encourage you to use your distro's app store, like Gnome Software or Discover Software Center."
-fi
+# --- SKIP ARM CHECK FOR AMD64 ---
+echo "Skipping ARM CPU check, continuing on amd64..."
+# if uname -m | grep -qi 'x86\|i686\|i386' ;then
+#   error "Pi-Apps is not supported on non-ARM CPU architectures. We encourage you to use your distro's app store."
+# fi
 
-sudo apt update || error "The command 'sudo apt update' failed. Before Pi-Apps will work, you must fix your apt package-management system."
+sudo apt update || error "The command 'sudo apt update' failed. Fix your package manager first."
 
 #install dependencies
-package_available_installer() { #determine if the specified package-name exists in a local repository for the current dpkg architecture (simplified and renamed for installer use only)
+package_available_installer() {
   local package="$(awk -F: '{print $1}' <<<"$1")"
   dpkg_arch="$(dpkg --print-architecture)"
   [ -z "$package" ] && error "package_available(): no package name specified!"
@@ -44,7 +45,7 @@ else
 fi
 
 if ! dpkg -s $dependencies &>/dev/null ;then
-  sudo apt install $dependencies -y -f --no-install-recommends || error "Pi-Apps dependencies failed to install and so the Pi-Apps install has been aborted. Before Pi-Apps can be installed you must solve any errors above."
+  sudo apt install $dependencies -y -f --no-install-recommends || error "Dependencies failed to install."
 fi
 
 #remove annoying "YAD icon browser" launcher
@@ -55,13 +56,10 @@ DIRECTORY="$(readlink -f "$(dirname "$0")")"
 if [ -z "$DIRECTORY" ] || [ "$DIRECTORY" == "$HOME" ] || [ "$DIRECTORY" == bash ] || [ ! -f "${DIRECTORY}/api" ] || [ ! -f "${DIRECTORY}/gui" ];then
   DIRECTORY="$HOME/pi-apps"
 fi
-downloaded=0 #track if pi-apps was downloaded this time
+downloaded=0
 
-#Re-download pi-apps folder in all cases if pi-apps already exists
-#users expect to use the install script to "restore" a working pi-apps install in incase their local version is somehow not working or corrupted
 if [ -d "$DIRECTORY" ];then    
   rm -rf ~/pi-apps-forced-update
-  
   echo "Reinstalling Pi-Apps..."
   downloaded=1
   output="$(git clone --depth 1 https://github.com/Botspot/pi-apps ~/pi-apps-forced-update 2>&1)"
@@ -72,8 +70,6 @@ if [ -d "$DIRECTORY" ];then
   cp -af "${DIRECTORY}/apps" ~/pi-apps-forced-update
   rm -rf "$DIRECTORY"
   mv -f ~/pi-apps-forced-update "$DIRECTORY"
-  
-#if pi-apps folder does not exist, download it
 elif [ ! -d "$DIRECTORY" ];then
   echo "Downloading Pi-Apps..."
   downloaded=1
@@ -81,40 +77,21 @@ elif [ ! -d "$DIRECTORY" ];then
   if [ $? != 0 ] || [ ! -d "$DIRECTORY" ];then
     error "Pi-Apps download failed!\ngit clone output was: $output"
   fi
-  #click new installation analytics link
   "${DIRECTORY}/api" shlink_link script install
 fi
 
-#Past this point, DIRECTORY variable populated with valid pi-apps directory
-
-#if ChromeOS, install lxterminal
+# ChromeOS terminal fix
 if command -v garcon-terminal-handler >/dev/null ;then
-  echo "In order to install apps on ChromeOS, a working terminal emulator is required.
-Installing lxterminal in 10 seconds... (press Ctrl+C to cancel)"
-  sleep 10
-  sudo apt install -yf lxterminal || error "Failed to install lxterminal on ChromeOS!"
+  echo "Installing lxterminal for ChromeOS..."
+  sleep 5
+  sudo apt install -yf lxterminal || echo "Failed to install lxterminal"
 fi
 
-#menu button
-if [ ! -f ~/.local/share/applications/pi-apps.desktop ];then
-  echo "Creating menu button..."
-fi
+# Menu button
 mkdir -p ~/.local/share/applications
-if [ -f /etc/xdg/menus/lxde-pi-applications.menu ] || [ -f /etc/xdg/menus/rpd-applications.menu ];then #If on PiOS, place launcher in Accessories as it has always been there and is more intuitive there
 echo "[Desktop Entry]
 Name=Pi-Apps
-Comment=Raspberry Pi App Store for open source projects
-Exec=${DIRECTORY}/gui
-Icon=${DIRECTORY}/icons/logo.png
-Terminal=false
-StartupWMClass=Pi-Apps
-Type=Application
-Categories=Utility
-StartupNotify=true" > ~/.local/share/applications/pi-apps.desktop
-else #if not on PiOS, place launcher in Preferences to match the wider decision of putting app installers there (see PR #2388)
-echo "[Desktop Entry]
-Name=Pi-Apps
-Comment=Raspberry Pi App Store for open source projects
+Comment=Raspberry Pi App Store (AMD64 Patched)
 Exec=${DIRECTORY}/gui
 Icon=${DIRECTORY}/icons/logo.png
 Terminal=false
@@ -122,26 +99,21 @@ StartupWMClass=Pi-Apps
 Type=Application
 Categories=Utility;System;PackageManager;
 StartupNotify=true" > ~/.local/share/applications/pi-apps.desktop
-fi
 chmod 755 ~/.local/share/applications/pi-apps.desktop
 gio set ~/.local/share/applications/pi-apps.desktop "metadata::trusted" true
 
-#copy menu button to Desktop
+# Desktop shortcut
 mkdir -p ~/Desktop
 cp -f ~/.local/share/applications/pi-apps.desktop ~/Desktop/
-
 chmod 755 ~/Desktop/pi-apps.desktop
 gio set ~/Desktop/pi-apps.desktop "metadata::trusted" true
 
-#copy icon to local icons directory (necessary on some wayland DEs like on PiOS Wayfire)
+# Icons
 mkdir -p ~/.local/share/icons
 cp -f ${DIRECTORY}/icons/logo.png ~/.local/share/icons/pi-apps.png
 cp -f ${DIRECTORY}/icons/settings.png ~/.local/share/icons/pi-apps-settings.png
 
-#settings menu button
-if [ ! -f ~/.local/share/applications/pi-apps-settings.desktop ];then
-  echo "Creating Settings menu button..."
-fi
+# Settings menu
 echo "[Desktop Entry]
 Name=Pi-Apps Settings
 Comment=Configure Pi-Apps or create an App
@@ -153,9 +125,7 @@ Type=Application
 Categories=Settings;
 StartupNotify=true" > ~/.local/share/applications/pi-apps-settings.desktop
 
-if [ ! -f ~/.config/autostart/pi-apps-updater.desktop ];then
-  echo "Creating autostarted updater..."
-fi
+# Autostart updater
 mkdir -p ~/.config/autostart
 echo "[Desktop Entry]
 Name=Pi-Apps Updater
@@ -168,44 +138,34 @@ X-GNOME-Autostart-enabled=true
 Hidden=false
 NoDisplay=false" > ~/.config/autostart/pi-apps-updater.desktop
 
+# Preload folders
 mkdir -p "${DIRECTORY}/data/status" "${DIRECTORY}/data/update-status" \
   "${DIRECTORY}/data/preload" "${DIRECTORY}/data/settings" \
-  "${DIRECTORY}/data/status" "${DIRECTORY}/data/update-status" \
   "${DIRECTORY}/data/categories"
 
-#pi-apps terminal command
+# Terminal command
 if [ ! -f /usr/local/bin/pi-apps ] || ! cat /usr/local/bin/pi-apps | grep -q "${DIRECTORY}/gui" ;then
   echo "#!/bin/bash
 ${DIRECTORY}/gui"' "$@"' | sudo tee /usr/local/bin/pi-apps >/dev/null
   sudo chmod +x /usr/local/bin/pi-apps
 fi
 
-#check if system is broken
-errors="$("${DIRECTORY}/api" is_supported_system)" || error "$errors"
-
-if "${DIRECTORY}/api" package_installed coreutils-from-uutils; then
-  sudo apt-get -o DPkg::Lock::Timeout=-1 install coreutils-from-gnu coreutils-from-uutils- --allow-remove-essential -y
-  # force re-generate any preloaded files
-  rm -rf ${DIRECTORY}/data/preload/*
-fi
-
-#preload app list
+# Preload app list
 if [ ! -f "$DIRECTORY/data/preload/LIST-" ];then
   echo "Preloading app list..."
 fi
 "${DIRECTORY}/preload" yad &>/dev/null
 
-#Run runonce entries
+# Run runonce entries
 "${DIRECTORY}/etc/runonce-entries" &>/dev/null
 
-#Determine message of the day. If announcements file missing or over a day old, download it.
+# Message of the day
 if [ ! -f "${DIRECTORY}/data/announcements" ] || [ ! -z "$(find "${DIRECTORY}/data/announcements" -mtime +1 -print)" ]; then
   wget https://raw.githubusercontent.com/Botspot/pi-apps-announcements/main/message -qO "${DIRECTORY}/data/announcements"
 fi
 
 if [ $downloaded == 1 ];then
-  echo "Installation complete. Pi-Apps can be launched from the start menu or by running the command 'pi-apps'."
-  echo "Further explanation for how to use Pi-Apps can be found on our getting started webpage: https://pi-apps.io/wiki/getting-started/running-pi-apps/"
+  echo "Installation complete. Pi-Apps AMD64 patched. Launch from menu or 'pi-apps' command."
 else
-  echo -e "Please note that Pi-Apps has NOT been freshly downloaded, because $DIRECTORY already exists."
+  echo "Pi-Apps already installed."
 fi
