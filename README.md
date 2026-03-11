@@ -88,8 +88,8 @@ wget -qO- https://raw.githubusercontent.com/Jaypph/pi-apps-amd64/master/install.
 <summary><b>To install Pi-Apps manually</b> if you prefer to see what happens under the hood</summary>
  
 ```
-git clone https://github.com/Botspot/pi-apps
-~/pi-apps/install
+git clone https://github.com/Jaypph/pi-apps-amd64
+~/pi-apps-amd64/install.sh
 ```
 </details>
 
@@ -98,14 +98,14 @@ git clone https://github.com/Botspot/pi-apps
 This will not uninstall any apps that you installed through Pi-Apps.
 
 ```
-~/pi-apps/uninstall
+~/pi-apps-amd64/uninstall.sh
 ```
 </details>
 
 ## To run Pi-Apps
 - From the start menu: Accessories -> Pi-Apps
-- Use the terminal command: `pi-apps`
-- Run Pi-Apps from its directory: `~/pi-apps/gui`
+- Use the terminal command: `pi-apps-amd64`
+- Run Pi-Apps from its directory: `~/pi-apps-amd64/gui`
 
 ## To update Pi-Apps
 - Pi-apps will automatically check for updates on boot and display a notification to update.
