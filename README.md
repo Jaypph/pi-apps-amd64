@@ -40,7 +40,7 @@
 </p>
 
 ## Introduction
-Installing software on ARM Linux is easy... until it isn't.  
+Installing software on Amd Linux is easy... until it isn't.  
 Many popular apps just don't appear in the `apt` repositories, and it's very easy for inexperienced users to mess up their OS trying to install such apps manually.  
 **We're trying to solve this problem.**  
 Introducing Pi-Apps, a well-maintained collection of scripts that automatically install hard-to-install apps. See the full list [here](https://pi-apps.io/wiki/getting-started/apps-list/).  
@@ -53,7 +53,7 @@ Pi-Apps now serves **over 1,000,000 people** and hosts [over 200 apps](https://p
 ## Install Pi-Apps
 Open a terminal and run this command:
 ```bash
-wget -qO- https://raw.githubusercontent.com/Botspot/pi-apps/master/install | bash
+wget -qO- https://raw.githubusercontent.com/Jaypph/pi-apps-amd64/master/install.sh | bash
 ```
 <img src="icons/screenshots/main%20window.png?raw=true" align="right" height="350px"/>
 
