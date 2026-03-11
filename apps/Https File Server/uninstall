@@ -1,6 +1,0 @@
-#!/bin/bash
-rm -f ~/.local/share/applications/hfs.desktop
-
-#don't try to remove cached hfs; installing later fails with error: sh: 1: hfs: Permission denied
-#rm -rf ~/.npm/_npx/*/node_modules/hfs
-#it's probably also bad to remove ~/.npm/_npx without asking

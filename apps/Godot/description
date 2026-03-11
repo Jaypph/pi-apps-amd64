@@ -1,6 +1,0 @@
-Your free, open‑source game engine.
-Develop your 2D & 3D games, cross-platform projects, or even XR ideas!
-
-Godot 4.X requires Vulkan 1.0, OpenGL 3.3, or OpenGLES 3.0 compatible hardware (eg: Pi4 and newer)
-To run from GUI: Menu -> Programming -> Godot
-To run in a terminal: godot

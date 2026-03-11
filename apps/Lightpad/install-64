@@ -1,5 +1,0 @@
-#!/bin/bash
-
-version=0.1.0
-
-install_packages https://github.com/libredeb/lightpad/releases/download/v${version}/lightpad_${version}-1_arm64.deb || exit 1

@@ -1,8 +1,0 @@
-#!/bin/bash
-
-flatpak_uninstall io.mrarm.mcpelauncher || exit 1
-
-# remove legacy appimage files that would cause confusion if still installed somehow
-rm -f ~/.local/bin/MCBedrock.AppImage ~/.local/share/applications/minecraftbedrock.desktop
-
-purge_packages || exit 1

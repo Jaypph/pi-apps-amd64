@@ -1,8 +1,0 @@
-Stream or download audio from youtube, in your terminal
-If you play a lot of music from youtube in the background, then Shellbeats is for you.
-It only streams the audio, using much less internet bandwidth and CPU compared to playing the video.
-
-Shellbeats supports searching, streaming, downloading, and more.
-
-To run: Menu -> Sound & Video -> Shellbeats
-To run in a terminal: shellbeats

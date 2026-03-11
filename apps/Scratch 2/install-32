@@ -1,8 +1,0 @@
-#!/bin/bash
-
-sudo rm -f /usr/lib/chromium-browser/libpepflashplayer.so
-# make sure that scratch2 is not a held package
-echo "scratch2 install" | sudo dpkg --set-selections
-
-install_packages https://github.com/Pi-Apps-Coders/files/releases/download/large-files/scratch2_1.0.25_armhf.deb || exit 1
-

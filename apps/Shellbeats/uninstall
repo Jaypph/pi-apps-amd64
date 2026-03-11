@@ -1,6 +1,0 @@
-#!/bin/bash
-
-rm -rf /tmp/shellbeats ~/.local/share/applications/shellbeats.desktop
-sudo rm -f /usr/local/bin/shellbeats
-
-purge_packages || exit 1

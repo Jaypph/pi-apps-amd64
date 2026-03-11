@@ -1,5 +1,0 @@
-#!/bin/bash
-purge_packages || exit 1
-
-# cleanup old installation files
-rm -f ~/.local/share/applications/lightpad.desktop

@@ -1,6 +1,0 @@
-Progressive Web App for Zoom
-This is chromium-browser running Zoom. Performance is much better that emulated x86/x86_64 Zoom in almost all cases.
-Both versions can be installed at the same time and will not interfere with each another.
-
-To run: Menu -> Internet -> Zoom PWA
-To run in a terminal: zoom-pwa
