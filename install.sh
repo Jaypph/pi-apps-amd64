@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# ==============================
+# Pi-Apps AMD64 Patched Installer
+# Crostini / Debian/Ubuntu x86_64
+# ==============================
+
 function error {
   echo -e "\e[91m$1\e[39m"
   exit 1
@@ -7,23 +12,22 @@ function error {
 
 cd "$HOME"
 
-#ensure non-root
+# Ensure non-root
 if [[ "$(id -u)" == 0 ]]; then
-  error "Pi-Apps is not designed to be installed as root! Please try again as a regular user."
+  error "Pi-Apps is not designed to be installed as root! Run as regular user."
 fi
 
-#ensure Debian-based
-command -v apt >/dev/null || error "apt: command not found. Most likely this system is not running Debian/Ubuntu based Linux."
+# Ensure apt exists
+command -v apt >/dev/null || error "apt not found. Must be Debian/Ubuntu based Linux."
 
-# --- SKIP ARM CHECK FOR AMD64 ---
+# Skip ARM CPU check
 echo "Skipping ARM CPU check, continuing on amd64..."
-# if uname -m | grep -qi 'x86\|i686\|i386' ;then
-#   error "Pi-Apps is not supported on non-ARM CPU architectures. We encourage you to use your distro's app store."
-# fi
 
-sudo apt update || error "The command 'sudo apt update' failed. Fix your package manager first."
+sudo apt update || error "sudo apt update failed"
 
-#install dependencies
+# -----------------------
+# Install dependencies
+# -----------------------
 package_available_installer() {
   local package="$(awk -F: '{print $1}' <<<"$1")"
   dpkg_arch="$(dpkg --print-architecture)"
@@ -48,46 +52,48 @@ if ! dpkg -s $dependencies &>/dev/null ;then
   sudo apt install $dependencies -y -f --no-install-recommends || error "Dependencies failed to install."
 fi
 
-#remove annoying "YAD icon browser" launcher
 sudo rm -f /usr/share/applications/yad-icon-browser.desktop
 
-#download pi-apps if folder missing
-DIRECTORY="$(readlink -f "$(dirname "$0")")"
-if [ -z "$DIRECTORY" ] || [ "$DIRECTORY" == "$HOME" ] || [ "$DIRECTORY" == bash ] || [ ! -f "${DIRECTORY}/api" ] || [ ! -f "${DIRECTORY}/gui" ];then
-  DIRECTORY="$HOME/pi-apps"
-fi
+# -----------------------
+# Download Pi-Apps
+# -----------------------
+DIRECTORY="$HOME/pi-apps"
 downloaded=0
 
-if [ -d "$DIRECTORY" ];then    
-  rm -rf ~/pi-apps-forced-update
+if [ -d "$DIRECTORY" ];then
   echo "Reinstalling Pi-Apps..."
   downloaded=1
+  rm -rf ~/pi-apps-forced-update
   output="$(git clone --depth 1 https://github.com/Botspot/pi-apps ~/pi-apps-forced-update 2>&1)"
-  if [ $? != 0 ] || [ ! -d "$DIRECTORY" ];then
+  if [ $? != 0 ]; then
     error "Pi-Apps download failed!\ngit clone output was: $output"
   fi
   cp -af "${DIRECTORY}/data" ~/pi-apps-forced-update
   cp -af "${DIRECTORY}/apps" ~/pi-apps-forced-update
   rm -rf "$DIRECTORY"
   mv -f ~/pi-apps-forced-update "$DIRECTORY"
-elif [ ! -d "$DIRECTORY" ];then
+else
   echo "Downloading Pi-Apps..."
   downloaded=1
   output="$(git clone --depth 1 https://github.com/Botspot/pi-apps "$DIRECTORY" 2>&1)"
-  if [ $? != 0 ] || [ ! -d "$DIRECTORY" ];then
+  if [ $? != 0 ]; then
     error "Pi-Apps download failed!\ngit clone output was: $output"
   fi
   "${DIRECTORY}/api" shlink_link script install
 fi
 
+# -----------------------
 # ChromeOS terminal fix
+# -----------------------
 if command -v garcon-terminal-handler >/dev/null ;then
   echo "Installing lxterminal for ChromeOS..."
   sleep 5
   sudo apt install -yf lxterminal || echo "Failed to install lxterminal"
 fi
 
-# Menu button
+# -----------------------
+# Create menu and desktop
+# -----------------------
 mkdir -p ~/.local/share/applications
 echo "[Desktop Entry]
 Name=Pi-Apps
@@ -102,18 +108,21 @@ StartupNotify=true" > ~/.local/share/applications/pi-apps.desktop
 chmod 755 ~/.local/share/applications/pi-apps.desktop
 gio set ~/.local/share/applications/pi-apps.desktop "metadata::trusted" true
 
-# Desktop shortcut
 mkdir -p ~/Desktop
 cp -f ~/.local/share/applications/pi-apps.desktop ~/Desktop/
 chmod 755 ~/Desktop/pi-apps.desktop
 gio set ~/Desktop/pi-apps.desktop "metadata::trusted" true
 
+# -----------------------
 # Icons
+# -----------------------
 mkdir -p ~/.local/share/icons
 cp -f ${DIRECTORY}/icons/logo.png ~/.local/share/icons/pi-apps.png
 cp -f ${DIRECTORY}/icons/settings.png ~/.local/share/icons/pi-apps-settings.png
 
+# -----------------------
 # Settings menu
+# -----------------------
 echo "[Desktop Entry]
 Name=Pi-Apps Settings
 Comment=Configure Pi-Apps or create an App
@@ -125,7 +134,9 @@ Type=Application
 Categories=Settings;
 StartupNotify=true" > ~/.local/share/applications/pi-apps-settings.desktop
 
+# -----------------------
 # Autostart updater
+# -----------------------
 mkdir -p ~/.config/autostart
 echo "[Desktop Entry]
 Name=Pi-Apps Updater
@@ -138,32 +149,41 @@ X-GNOME-Autostart-enabled=true
 Hidden=false
 NoDisplay=false" > ~/.config/autostart/pi-apps-updater.desktop
 
+# -----------------------
 # Preload folders
+# -----------------------
 mkdir -p "${DIRECTORY}/data/status" "${DIRECTORY}/data/update-status" \
   "${DIRECTORY}/data/preload" "${DIRECTORY}/data/settings" \
   "${DIRECTORY}/data/categories"
 
+# -----------------------
 # Terminal command
+# -----------------------
 if [ ! -f /usr/local/bin/pi-apps ] || ! cat /usr/local/bin/pi-apps | grep -q "${DIRECTORY}/gui" ;then
   echo "#!/bin/bash
 ${DIRECTORY}/gui"' "$@"' | sudo tee /usr/local/bin/pi-apps >/dev/null
   sudo chmod +x /usr/local/bin/pi-apps
 fi
 
-# Preload app list
+# -----------------------
+# Preload app list and runonce
+# -----------------------
 if [ ! -f "$DIRECTORY/data/preload/LIST-" ];then
   echo "Preloading app list..."
 fi
 "${DIRECTORY}/preload" yad &>/dev/null
-
-# Run runonce entries
 "${DIRECTORY}/etc/runonce-entries" &>/dev/null
 
-# Message of the day
+# -----------------------
+# Announcements
+# -----------------------
 if [ ! -f "${DIRECTORY}/data/announcements" ] || [ ! -z "$(find "${DIRECTORY}/data/announcements" -mtime +1 -print)" ]; then
   wget https://raw.githubusercontent.com/Botspot/pi-apps-announcements/main/message -qO "${DIRECTORY}/data/announcements"
 fi
 
+# -----------------------
+# Finished
+# -----------------------
 if [ $downloaded == 1 ];then
   echo "Installation complete. Pi-Apps AMD64 patched. Launch from menu or 'pi-apps' command."
 else
