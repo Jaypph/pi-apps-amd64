@@ -1,4 +1,8 @@
-# Pi-Apps AMD64
+<div align="center">
+  <img src="https://raw.githubusercontent.com/Jaypph/pi-apps-amd64/master/logo.svg" width="200">
+  <h1>Pi-Apps AMD64</h1>
+</div>
+
 
 <p align="center">A lightweight app store for AMD64 Linux</p>
 
