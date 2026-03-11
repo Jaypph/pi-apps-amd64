@@ -1,17 +1,30 @@
 #!/bin/bash
 
-if [ "$(get_codename)" == bookworm ];then
-  install_packages http://http.us.debian.org/debian/pool/main/d/debian-archive-keyring/debian-archive-keyring_2025.1_all.deb || exit 1
-  if [ $arch == 32 ]; then
-    install_packages http://http.us.debian.org/debian/pool/main/g/glew/libglew2.2_2.2.0-4+b1_armhf.deb || exit 1
-  fi
-  echo "deb http://deb.debian.org/debian bookworm-backports main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/bookworm-backports.list >/dev/null
-  install_packages -t bookworm-backports kicad kicad-libraries || exit 1
-elif [ $arch == 64 ]; then
-  # install kicad from flathub
-  install_packages flatpak || exit 1
-  flatpak_install org.kicad.KiCad || exit 1
+# -----------------------------
+# Install KiCad (amd64)
+# -----------------------------
+
+# Update system
+sudo apt update || exit 1
+sudo apt install -y wget software-properties-common apt-transport-https gnupg || exit 1
+
+# Determine Debian/Ubuntu codename
+CODENAME=$(lsb_release -cs)
+
+# Add backports if on Debian Bookworm
+if [ "$CODENAME" == "bookworm" ]; then
+    echo "Adding Bookworm backports..."
+    echo "deb http://deb.debian.org/debian bookworm-backports main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/bookworm-backports.list >/dev/null
+    sudo apt update
+    sudo apt install -y -t bookworm-backports kicad kicad-libraries || { echo "Failed to install KiCad from backports"; exit 1; }
 else
-  # not a 64bit system or bookworm so install kicad from debian repos
-  install_packages kicad kicad-libraries || exit 1
+    # Use apt or Flatpak for other amd64 systems
+    if command -v flatpak >/dev/null; then
+        echo "Installing KiCad via Flatpak..."
+    else
+        sudo apt install -y flatpak || { echo "Failed to install Flatpak"; exit 1; }
+    fi
+    flatpak install -y flathub org.kicad.KiCad || { echo "Failed to install KiCad via Flatpak"; exit 1; }
 fi
+
+echo "KiCad amd64 installation complete!"
