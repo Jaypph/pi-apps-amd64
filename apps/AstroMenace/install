@@ -1,25 +1,42 @@
 #!/bin/bash
-install_packages g++ cmake make ninja-build libsdl2-dev libogg-dev libvorbis-dev libopenal-dev libalut-dev libfreetype6-dev libglu1-mesa-dev || exit 1
 
-#download
+# -----------------------------
+# Install dependencies
+# -----------------------------
+sudo apt update || exit 1
+sudo apt install -y g++ cmake make ninja-build \
+  libsdl2-dev libogg-dev libvorbis-dev \
+  libopenal-dev libalut-dev libfreetype6-dev \
+  libglu1-mesa-dev unzip wget || exit 1
+
+# -----------------------------
+# Download AstroMenace
+# -----------------------------
 rm -rf master.zip astromenace-master/
-wget https://github.com/viewizard/astromenace/archive/refs/heads/master.zip || error 'Failed to download zip!'
-unzip master.zip || error 'Failed to unzip'
+wget -O master.zip https://github.com/viewizard/astromenace/archive/refs/heads/master.zip || { echo "Failed to download zip!"; exit 1; }
+unzip master.zip || { echo "Failed to unzip"; exit 1; }
 rm -f master.zip
 
-#build
-cd astromenace-master/
-cmake . || error 'Failed to run cmake'
-make || error 'Failed to run make'
-#menu button
+# -----------------------------
+# Build the game
+# -----------------------------
+cd astromenace-master/ || { echo "Directory not found!"; exit 1; }
+cmake . || { echo "CMake failed!"; exit 1; }
+make || { echo "Make failed!"; exit 1; }
+
+# -----------------------------
+# Create menu/desktop entry
+# -----------------------------
+mkdir -p ~/.local/share/applications
 echo "[Desktop Entry]
 Version=1.1
 Type=Application
 Name=AstroMenace
-Comment=Hardcore 3D space scroll-shooter with spaceship upgrade possibilities.
+Comment=Hardcore 3D space scroll-shooter with spaceship upgrades
 Icon=$HOME/astromenace-master/share/astromenace_128.png
 Exec=$HOME/astromenace-master/astromenace
 Categories=Game;
 Terminal=false
 StartupNotify=true" > ~/.local/share/applications/astromenace.desktop
 
+echo "AstroMenace amd64 installation complete!"
