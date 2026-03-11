@@ -1,273 +1,66 @@
 #!/bin/bash
 
-#This script enables ZRAM and attempts to optimize its effectiveness on Raspberry Pi computers.
-#Useful links:
-#https://haydenjames.io/linux-performance-almost-always-add-swap-part2-zram
-#https://haydenjames.io/raspberry-pi-performance-add-zram-kernel-parameters/
-#https://linuxreviews.org/Zram
-#https://linuxize.com/post/how-to-change-the-swappiness-value-in-linux
+error() { echo -e "\e[91m$1\e[0m" 1>&2; exit 1; }
+status() { echo -e "\e[96m$1\e[0m" 1>&2; }
+status_green() { echo -e "\e[92m$1\e[0m" 1>&2; }
 
-#original zram script from novaspirit: https://github.com/novaspirit/rpi_zram
-
-#define error, status and status_green functions in case this script is being run standalone without pi-apps api (wget -qO- https://raw.githubusercontent.com/Botspot/pi-apps/master/apps/More%20RAM/install | bash)
-error() { #red text and exit 1
-  echo -e "\e[91m$1\e[0m" 1>&2
-  exit 1
-}
-status() { #cyan text to indicate what is happening
-  
-  #detect if a flag was passed, and if so, pass it on to the echo command
-  if [[ "$1" == '-'* ]] && [ ! -z "$2" ];then
-    echo -e $1 "\e[96m$2\e[0m" 1>&2
-  else
-    echo -e "\e[96m$1\e[0m" 1>&2
-  fi
-}
-status_green() { #announce the success of a major action
-  echo -e "\e[92m$1\e[0m" 1>&2
-}
-
-#the below function is unused in this script. Keeping it here as it could be useful elsewhere.
-set_value() { #Add the $1 line to the $2 config file. (setting=value format) This function changes the setting if it's already there.
-  local file="$2"
-  [ -z "$file" ] && error "set_value: path to config-file must be specified."
-  [ ! -f "$file" ] && error "Config file '$file' does not exist!"
-  local setting="$1"
-  
-  #This function assumes a setting=value format. Remove the number value to be able to change it.
-  local setting_without_value="$(echo "$setting" | awk -F= '{print $1}')"
-  
-  #edit the config file with the new value
-  sudo sed -i "s/^${setting_without_value}=.*/${setting}/g" "$file"
-  
-  #ensure sed actually did something; if not, add setting to end of file
-  if ! grep -qxF "$setting" "$file" ;then
-    echo "$setting" | sudo tee -a "$file" >/dev/null
-  fi
-}
-
-#disable dphys-swapfile service if running
-if [ -f /usr/sbin/dphys-swapfile ] && systemctl is-active --quiet dphys-swapfile.service ;then
-  status "Disabling swap"
-  #swapoff and remove swapfile
-  sudo /usr/sbin/dphys-swapfile uninstall
-  
-  #prevent dphys-swapfile from running on boot
-  sudo systemctl mask dphys-swapfile.service #see /lib/systemd/system/dphys-swapfile.service
+# Disable any existing swap services
+if systemctl is-active --quiet dphys-swapfile.service 2>/dev/null; then
+    status "Disabling Raspberry Pi swap service (if present)"
+    sudo swapoff -a
+    sudo systemctl mask dphys-swapfile.service
+fi
+if systemctl is-active --quiet mkswap.service 2>/dev/null; then
+    status "Disabling generic mkswap service"
+    sudo swapoff -a
+    sudo systemctl mask mkswap.service
 fi
 
-#Disable Ubuntu's mkswap service if running
-if systemctl is-active --quiet mkswap.service ;then
-  status "Disabling swap"
-  #swapoff and remove swapfile
-  sudo systemctl disable mkswap.service
-  
-  #prevent dphys-swapfile from running on boot
-  sudo systemctl mask mkswap.service
+# Ensure zram module loaded
+if ! lsmod | grep -q zram; then
+    sudo modprobe zram || error "Failed to load zram kernel module"
 fi
+status_green "ZRAM module loaded"
 
-PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
-status -n "Checking system for compatibility... "
-if [ "$(ps --no-headers -o comm 1)" != systemd ];then
-  error "\nUser error: Incompatible because your system was not booted with systemd."
-elif ! command -v zramctl >/dev/null ;then
-  error "\nUser error: Incompatible because the 'zramctl' command is missing on your system."
-elif ! command -v swapon >/dev/null ;then
-  error "\nUser error: Incompatible because the 'swapon' command is missing on your system."
-elif ! command -v swapoff >/dev/null ;then
-  error "\nUser error: Incompatible because the 'swapoff' command is missing on your system."
-elif ! command -v modprobe >/dev/null ;then
-  error "\nUser error: Incompatible because the 'modprobe' command is missing on your system."
-fi
-
-#load zram module
-if command -v enable_module >/dev/null ;then
-  enable_module zram || exit 1
-elif ! lsmod | awk '{print $1}' | grep -qxF zram ;then
-  if ! sudo modprobe zram &>/dev/null ;then
-    if [ ! -d "/lib/modules/$(uname -r)" ];then
-        error "\nUser error: Failed to load the 'zram' kernel module because you upgraded the kernel and have not rebooted yet.
-Please reboot to load the new kernel, then try again."
-    else
-      error "\nUser error: Incompatible because the 'zram' kernel module is missing on your system."
-    fi
-  fi
-fi
-status_green "Done"
-
-status "Creating zram script: /usr/bin/zram.sh"
-sudo tee /usr/bin/zram.sh >/dev/null << "EOF"
+# Create /usr/bin/zram.sh
+sudo tee /usr/bin/zram.sh >/dev/null <<'EOF'
 #!/bin/bash
-
-export LANG=C
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
-error() { #red text and exit 1
-  echo -e "\e[91m$1\e[0m" 1>&2
-  exit 1
-}
-
-if [ "$1" == --help ] || [ "$1" == -h ];then
-  echo -e "This is a script made by Botspot to increase usable RAM by setting up ZRAM.
-ZRAM uses compression to fit more memory in your available RAM.
-This script will setup a ZRAM swapspace that is 4 times larger than usable RAM.
-It also configures high-speed RAM-based file-storage at /zram.
-
-Usage:
-
-sudo zram.sh               Setup zram-swap and storage (if enabled)
-sudo zram.sh stop          Disable all ZRAM devices and exit
-sudo zram.sh storage-off   Disable the file-storage at /zram on next run
-sudo zram.sh storage-on    Enable the file-storage at /zram on next run
-sudo zram.sh flush         Empty one of the 4 ZRAM swap devices, to avoid storing unused memory pages. Run 4 times for full effect.
-zram.sh --help, -h         Display this information and exit"
-  exit 0
-elif [ "$1" == flush ];then
-  #clear out one zram swap at a time, forcing active pages to migrate back to RAM or another zram, and orphaned pages to be discarded.
-  #This prevents gradual sluggishness after the system has ran for days with occasional high levels of swapping.
-  
-  #find which zram swap is the most used, and clear that one
-  flush_zram="$(cat /proc/swaps | tail +2 | grep '^/dev/zram' | awk '{print $4" "$1}' | sort -n | tail -1 | awk '{print $2}' | sed 's+^/dev/++g')"
-  if [ -z "$flush_zram" ];then
-    error "No zram devices found, cannot flush"
-  fi
-  echo -n "Flushing $flush_zram... "
-  
-  #gradually swapoff to keep CPU loads to a minimum
-  i=0
-  while grep "^/dev/${flush_zram} " /proc/swaps -q && [ $i -le 180 ];do
-    swapoff /dev/${flush_zram} &>/dev/null &
-    swapoffpid=$!
-    sleep 0.2
-    kill $swapoffpid &>/dev/null
-    sleep 1
-    i=$((i+1))
-  done
-  #in case the loop did not successfully swapoff:
-  if grep "^/dev/${flush_zram} " /proc/swaps -q ;then
-    swapoff /dev/${flush_zram}
-  fi
-  
-  mkswap -q /dev/${flush_zram}
-  swapon /dev/${flush_zram} -d -p 1
-  echo Done
-  exit 0
-fi
-
 if [ $(id -u) -ne 0 ]; then
-  error "zram.sh must be run as root user"
+    echo "zram.sh must be run as root"; exit 1
 fi
 
-#avoid creating /zram storage if storage-off flag passed
-if [ "$1" == storage-off ]; then
-  #retain this flag for next boot
-  if ! grep -qxF "ExecStart=/usr/bin/zram.sh storage-off" /etc/systemd/system/zram-swap.service ;then
-    sed -i "s+^ExecStart=/usr/bin/zram.sh$+ExecStart=/usr/bin/zram.sh storage-off+g" /etc/systemd/system/zram-swap.service
-  fi
-  echo -e "zram.sh will not set up file-storage at /zram from now on."
-#the /zram storage can be re-enabled with storage-on flag
-elif [ "$1" == storage-on ]; then
-  sed -i "s+^ExecStart=/usr/bin/zram.sh storage-off$+ExecStart=/usr/bin/zram.sh+g" /etc/systemd/system/zram-swap.service
-  echo -e "zram.sh will set up file-storage at /zram from now on."
-fi
-
-# Load zram module
-if ! lsmod | awk "{print $1}" | grep -qxF zram ;then
-  if ! modprobe zram ;then
-    error "Failed to load zram kernel module"
-  fi
-fi
-
-# prepare to disable all zram devices (after making new ones)
-old_zram="$(find /dev/ -name zram* -type b | tr -cd "0123456789\n")"
-
-disable_old_zram() { #put this into a function so it can be run in 2 different places cleanly
-  
-  local IFS=$'\n'
-  for device_number in $old_zram ;do
-    #if zram device is a swap device, disable it
-    echo -n "Disabling zram${device_number}... "
-    swapoff /dev/zram${device_number} 2>/dev/null
-    if [ $? == 137 ];then
-      error "Cannot disable ZRAM because doing so would overflow your RAM. Try closing some programs, then run this script again."
-    fi
-    
-    #if zram device is mounted, unmount it
-    umount /dev/zram${device_number} 2>/dev/null
-    
-    #remove device
-    #non-fatal because sometimes the file-storage zram device gets stuck with "Device or resource busy" forever until reboot
-    echo $device_number > /sys/class/zram-control/hot_remove || true
-    #if [ $? != 0 ];then
-    #  error "Cannot disable ZRAM${device_number} because doing so would overflow your RAM. Try closing some programs, then run this script again."
-    #fi
-    echo Done
-  done
-  rm -rf /zram
-}
-
-#exit script now if "exit" flag passed
-if [ "$1" == stop ]; then
-  disable_old_zram
-  exit 0
-fi
-
-#create 4 new zram drives - for swap
-drive_num1=$(cat /sys/class/zram-control/hot_add)
-drive_num2=$(cat /sys/class/zram-control/hot_add)
-drive_num3=$(cat /sys/class/zram-control/hot_add)
-drive_num4=$(cat /sys/class/zram-control/hot_add)
-
-# use zstd compression if available - best option according to https://linuxreviews.org/Comparison_of_Compression_Algorithms#zram_block_drive_compression
-if cat /sys/block/zram${drive_num1}/comp_algorithm | grep -q zstd ;then
-  algorithm=zstd
-else
-  algorithm=lz4
-fi
-totalmem=$(free | grep -e "^Mem:" | awk '{print $2}')
-
-#create 4 zram disks each the same size as usable RAM - compression ratio for zstd can approach 5:1 according to https://linuxreviews.org/Zram
-for i in $drive_num1 $drive_num2 $drive_num3 $drive_num4 ;do
-  #set the compression algorithm
-  echo $algorithm > /sys/block/zram${i}/comp_algorithm
-  #set the zram size
-  echo $((totalmem * 1024)) > /sys/block/zram${i}/disksize
-  #make the swap devices
-  mkswap /dev/zram${i}
-  swapon /dev/zram${i} -d -p 1
+# Disable old zram devices
+for d in $(ls /dev/zram* 2>/dev/null); do
+    swapoff "$d" 2>/dev/null
+    echo "$d" | sed 's+/dev/++' > /sys/class/zram-control/hot_remove 2>/dev/null || true
 done
 
-disable_old_zram
+# Create 4 zram swap devices
+for i in {1..4}; do
+    devnum=$(cat /sys/class/zram-control/hot_add)
+    totalmem=$(awk '/MemTotal/ {print $2*1024}' /proc/meminfo)
+    echo lz4 > /sys/block/zram$devnum/comp_algorithm
+    echo $totalmem > /sys/block/zram$devnum/disksize
+    mkswap /dev/zram$devnum
+    swapon /dev/zram$devnum -d -p 1
+done
 
-#create zram drive for temporary user-storage at /zram
-if ! grep -qxF "ExecStart=/usr/bin/zram.sh storage-off" /etc/systemd/system/zram-swap.service ;then
-  echo "Setting up ZRAM-powered file storage at /zram"
-  #create new zram drive
-  storage_drive_num=$(cat /sys/class/zram-control/hot_add)
-  
-  # set compression algorithm
-  echo $algorithm > /sys/block/zram${storage_drive_num}/comp_algorithm
-  
-  #set the size of drive to be 4 times the available RAM
-  echo $((totalmem * 1024 * 4)) > /sys/block/zram${storage_drive_num}/disksize
-  
-  #create a partition and mount it
-  mkfs.ext4 -F -O ^has_journal,^metadata_csum,^orphan_file -b 4096 /dev/zram${storage_drive_num} >/dev/null
-  mkdir -p /zram
-  mount /dev/zram${storage_drive_num} /zram
-  chmod -R 777 /zram #make writable for any user
-  rmdir /zram/lost+found || true
-fi
+# Optional /zram storage (4x RAM)
+storage_drive=$(cat /sys/class/zram-control/hot_add)
+echo lz4 > /sys/block/zram$storage_drive/comp_algorithm
+echo $((totalmem*4)) > /sys/block/zram$storage_drive/disksize
+mkfs.ext4 -F /dev/zram$storage_drive
+mkdir -p /zram
+mount /dev/zram$storage_drive /zram
+chmod -R 777 /zram
 EOF
 
 sudo chmod +x /usr/bin/zram.sh
 
-status "Making it run on startup"
-echo '  - Creating zram-swap.service'
+# Setup systemd services
 sudo tee /etc/systemd/system/zram-swap.service >/dev/null <<EOF
 [Unit]
-Description=Configures zram swap device
+Description=Configures ZRAM swap devices
 After=local-fs.target
 
 [Service]
@@ -280,25 +73,9 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
 
-#Run every 5 min a zram cache cleaning script
-#clear out 1 of 4 zram swaps at a time, forcing active pages to migrate back to RAM or another zram, and orphaned pages to be discarded.
-#This prevents accumulation of orphaned pages from dead PIDs
-sudo tee /etc/systemd/system/zram-flush.service >/dev/null <<EOF
-[Unit]
-Description=flush zram to release orphaned memory pages
-After=network.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/zram.sh flush
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
 sudo tee /etc/systemd/system/zram-flush.timer >/dev/null <<EOF
 [Unit]
-Description=Run zram flush every 5 min
+Description=Flush ZRAM every 5 min
 
 [Timer]
 OnBootSec=5min
@@ -308,49 +85,11 @@ OnUnitActiveSec=5min
 WantedBy=multi-user.target
 EOF
 
-echo '  - Reloading Systemd unit files'
 sudo systemctl daemon-reload
-echo '  - Enabling zram-swap.service to run on boot'
 sudo systemctl enable --now zram-swap.service
 sudo systemctl enable --now zram-flush.timer
 
-status -n "Running it now."
-echo " Output:"
-sudo /usr/bin/zram.sh || exit 1
+status "Running ZRAM setup..."
+sudo /usr/bin/zram.sh || error "ZRAM setup failed"
 
-status "Changing kernel parameters for better performance:"
-#change kernel values as recommended by: https://haydenjames.io/linux-performance-almost-always-add-swap-part2-zram
-
-#Use aggressive cache clearing if available RAM is less than 2GB (will trigger on 2GB and below systems)
-if [ "$(awk '/MemTotal/ {print $2}' /proc/meminfo)" -lt $((2*1024*1024)) ];then
-  echo 'vm.swappiness=100
-vm.vfs_cache_pressure=500
-vm.dirty_background_ratio=1
-vm.dirty_ratio=50
-vm.page-cluster=0
-vm.watermark_boost_factor=0
-vm.watermark_scale_factor=125' | sudo tee /etc/sysctl.d/zram.conf >/dev/null
-else
-  #otherwise set the values that make good use of zram while keeping file caching
-  echo 'vm.swappiness=100
-vm.page-cluster=0
-vm.watermark_boost_factor=0
-vm.watermark_scale_factor=125' | sudo tee /etc/sysctl.d/zram.conf >/dev/null
-  #vm.page-cluster=3 by default, or 32kb memory pages on 4k pagesize kernels. Good for physical swap but wasteful for zram.
-  #vm.page-cluster=0 uses memory pages the same size as the kernel pagesize, so 4kb on pi4 and 16kb on pi5 kernel. Smaller is better for zram.
-  #see https://wiki.archlinux.org/title/Zram#Optimizing_swap_on_zram
-fi
-#adopt these values now and print them
-sudo sysctl -p /etc/sysctl.d/zram.conf
-
-#this script used to add lines to /etc/sysctl.conf, which is not guaranteed to exist. Remove those lines if found.
-sudo sed -i '/^vm\.swappiness=100$/d ; /^vm\.vfs_cache_pressure=500$/d ; /^vm\.dirty_background_ratio=1$/d ; /^vm\.dirty_ratio=50$/d' /etc/sysctl.conf 2>/dev/null
-
-echo
-status_green "ZRAM is now ready to use. No need to reboot your device."
-
-status "Below is a summary:"
-zramctl
-status "You can see this at any time by running 'zramctl'"
-sleep 1
-
+status_green "ZRAM amd64 setup complete!"
