@@ -1,3 +1,41 @@
 #!/bin/bash
 
-install_packages https://aka.ms/linux-arm64-deb || exit 1
+set -e
+
+# -----------------------------
+# VS Code amd64 installer
+# -----------------------------
+
+# Download den nyeste VS Code .deb til amd64
+FILENAME="/tmp/code_amd64.deb"
+URL="https://update.code.visualstudio.com/latest/linux-deb-x64/stable"
+
+echo "Downloading Visual Studio Code (amd64)..."
+wget -O "$FILENAME" "$URL" || { echo "Download failed"; exit 1; }
+
+echo "Installing dependencies..."
+sudo apt update
+sudo apt install -y gpg wget apt-transport-https libx11-xcb1 libxcb1 libxkbfile1 libsecret-1-0 libxss1 libasound2 libgtk-3-0 || true
+
+echo "Installing VS Code..."
+sudo apt install -y "$FILENAME" || { echo "VS Code installation failed"; exit 1; }
+
+rm -f "$FILENAME"
+
+echo "Creating menu shortcut..."
+mkdir -p ~/.local/share/applications
+tee ~/.local/share/applications/vscode.desktop >/dev/null <<EOF
+[Desktop Entry]
+Name=Visual Studio Code
+Comment=Code Editing. Redefined.
+Exec=/usr/bin/code
+Icon=code
+Terminal=false
+Type=Application
+Categories=Utility;Development;IDE;
+StartupNotify=true
+EOF
+
+gio set ~/.local/share/applications/vscode.desktop "metadata::trusted" true
+
+echo "Visual Studio Code amd64 installed successfully!"
