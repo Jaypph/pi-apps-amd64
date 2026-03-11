@@ -1,46 +1,20 @@
-<p align="center">
-    <a href="https://pi-apps.io">
-        <img src="https://github.com/Botspot/pi-apps/blob/master/icons/proglogo.png?raw=true" alt="Pi-Apps logo">
-    </a>
 </p>
-<p align="center">The most popular app store for Raspberry Pi computers. 100% free, open-source and written in shell scripts.
+<p align="center">A app store for amd64 linux
 <p align="center">
-  <a href="https://github.com/Botspot/pi-apps/blob/master/CHANGELOG.md">
+  <a href="https://github.com/Jaypph/pi-apps-amd64/blob/master/CHANGELOG.md">
     View changelog</a>
   |
-  <a href="https://pi-apps.io/wiki/getting-started/apps-list/">
-    Apps List</a>
-  |
-  <a href="https://github.com/Botspot/pi-apps/issues/new?template=bug-report.yml">
+  <a href="https://github.com/Jaypph/pi-apps-amd64/issues/">
     Report an error</a>
   |
   <a href="https://github.com/Botspot/pi-apps/issues/new?template=suggestion.yml">
     Make a general suggestion</a>
   |
-  <a href="https://github.com/Botspot/pi-apps/issues/new?assignees=&labels=App+Request&template=app-suggestion.yml&title=EDIT+ME+Include+the+app+name">
+  <a href="https://github.com/Jaypph/pi-apps-amd64/issues/>
     Suggest new app</a>
-  |
-  <a href="https://github.com/Botspot/pi-apps/issues/new?assignees=&labels=App+Request%2CZip%2FPR+included&template=app-submission.yml&title=EDIT+ME+Include+the+app+name+and+if+it+is+a+Package+app+or+an+Install+based+App">
-    Submit a new app</a>
-
-<p align="center">
-    <a href="https://github.com/Botspot/pi-apps/stargazers"><img src="https://img.shields.io/github/stars/Botspot/pi-apps" alt="stars"></a>
-    <a href="https://github.com/Botspot/pi-apps/network/members"><img src="https://img.shields.io/github/forks/Botspot/pi-apps" alt="forks"></a>
-    <a href="https://github.com/Botspot/pi-apps/graphs/contributors"><img src="https://img.shields.io/github/contributors/Botspot/pi-apps" alt="contributors"></a>
-    <a href="https://github.com/Botspot/pi-apps/pulls"><img src="https://img.shields.io/github/issues-pr/Botspot/pi-apps" alt="prs"></a>
-    <a href="https://github.com/Botspot/pi-apps/issues?q=is%3Aopen+is%3Aissue+label%3Abug"><img src="https://img.shields.io/github/issues/Botspot/pi-apps/bug?color=red&label=bugs"></a>
-    <a href="https://github.com/Botspot/pi-apps/issues?q=is%3Aopen+is%3Aissue+label%3A%22App+Request%22"><img src="https://img.shields.io/github/issues/Botspot/pi-apps/App%20Request?color=Green&label=app%20requests"></a>
-    <a href="https://github.com/Botspot/pi-apps/blob/master/COPYING"><img src="https://img.shields.io/github/license/Botspot/pi-apps" alt="license"></a>
-    <a href="https://discord.gg/RXSTvaUvuu"><img src="https://img.shields.io/discord/770629697909424159.svg?color=7289da&label=Discord%20server&logo=discord" alt="Join the Discord server"></a>
-
-<p align="center"><strong>Made with &#10084; by <a href="https://github.com/Botspot">Botspot</a></strong>, <strong><a href="https://github.com/theofficialgman">theofficialgman</a></strong>, and <a href="https://github.com/Botspot/pi-apps/graphs/contributors">contributors</a>
-
-<p align="center">
-    Check out our website: <a href="https://pi-apps.io">pi-apps.io</a>
-</p>
 
 ## Introduction
-Installing software on Amd Linux is easy... until it isn't.  
+Installing software on Amd64 Linux is easy... until it isn't.  
 Many popular apps just don't appear in the `apt` repositories, and it's very easy for inexperienced users to mess up their OS trying to install such apps manually.  
 **We're trying to solve this problem.**  
 Introducing Pi-Apps, a well-maintained collection of scripts that automatically install hard-to-install apps. See the full list [here](https://pi-apps.io/wiki/getting-started/apps-list/).  
