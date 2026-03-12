@@ -8,7 +8,7 @@ body:
       options:
       - label: I searched for similar bug reports in https://github.com/Jaypph/pi-apps-amd64/issues and found none were relevant.
         required: true
-      - label: I tried updating Pi-Apps and the issue is still not fixed. [How to update Pi-Apps?](https://github.com/Jaypph/pi-apps-amd64-wiki/)
+      - label: I tried updating Pi-Apps and the issue is still not fixed. [How to update Pi-Apps-Amd64?](https://github.com/Jaypph/pi-apps-amd64-wiki/)
         required: false
       - label: 'IMPORTANT: I promise to respond to comments on this issue and write a good bug report https://www.softwaretestinghelp.com/how-to-write-good-bug-report/'
         required: true
@@ -35,15 +35,19 @@ body:
       description: ~/pi-apps/api get_device_info
       placeholder: |
         OS: Debian GNU/Linux 12 (bookworm)
-        OS architecture: 64-bit
-        Last updated Pi-Apps on: 1/1/2024
-        Latest Pi-Apps version: 1/1/2024
-        Kernel: aarch64 6.1.0-rpi7-rpi-v8
-        Device model: Raspberry Pi 5 Model B Rev 1.0
-        SOC identifier: bcm2712
-        Cpu name: Cortex-A76
-        Ram size: 7.94 GB
-        Raspberry Pi OS image version: 2023-12-05
+        OS architecture: 64-bit (x86_64)
+        Environment: Google Crostini (Linux Container)
+        Last updated Pi-Apps-Amd64 on: 1/1/2026
+        Latest Pi-Apps-Amd64 version: 1/1/2026
+        Kernel: AMD64 2.6.1 (Virtual Container Kernel)
+        Device model: Lenovo 300e Chromebook Gen 3
+        Board Name: Bluebird
+        ChromeOS Family: Zork
+        SOC identifier: AMD Zen (Raven Ridge)
+        CPU name: AMD 3015Ce (2 Cores, 4 Threads)
+        GPU name: AMD Radeon™ Graphics (Integrated)
+        RAM size: 4 GB DDR4
+        Storage type: eMMC 5.1 / NVMe (afhængig af konfiguration)
         Language: en_US.UTF-8
       render: bash
     validations:
