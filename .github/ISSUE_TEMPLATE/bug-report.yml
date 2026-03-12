@@ -6,9 +6,9 @@ body:
     attributes:
       label: Confirmations
       options:
-      - label: I searched for similar bug reports in https://github.com/Botspot/pi-apps/issues and found none were relevant.
+      - label: I searched for similar bug reports in https://github.com/Jaypph/pi-apps-amd64/issues and found none were relevant.
         required: true
-      - label: I tried updating Pi-Apps and the issue is still not fixed. [How to update Pi-Apps?](https://pi-apps.io/wiki/getting-started/updating-pi-apps/)
+      - label: I tried updating Pi-Apps and the issue is still not fixed. [How to update Pi-Apps?](https://github.com/Jaypph/pi-apps-amd64-wiki/)
         required: false
       - label: 'IMPORTANT: I promise to respond to comments on this issue and write a good bug report https://www.softwaretestinghelp.com/how-to-write-good-bug-report/'
         required: true
