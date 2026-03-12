@@ -3,15 +3,15 @@
   <h1>Pi-Apps AMD64</h1>
 </div>
 
-
 <p align="center">A lightweight app store for AMD64 Linux</p>
 
 <p align="center">
   <a href="https://github.com/Jaypph/pi-apps-amd64/blob/master/CHANGELOG.md">View changelog</a> |
-  <a href="https://github.com/Jaypph/pi-apps-amd64/issues/">Report an error</a> |
-  <a href="https://github.com/Botspot/pi-apps/issues/new?template=suggestion.yml">Make a general suggestion</a> |
+  <a href="https://github.com/Jaypph/pi-apps-amd64/issues/">Report a bug</a> |
+  <a href="https://github.com/Botspot/pi-apps/issues/new?template=suggestion.yml">Make a suggestion</a> |
   <a href="https://github.com/Jaypph/pi-apps-amd64/issues/new">Suggest new app</a>
 </p>
+
 <p align="center">
   <!-- GitHub Stars -->
   <a href="https://github.com/Jaypph/pi-apps-amd64/stargazers">
@@ -20,6 +20,10 @@
   <!-- GitHub Forks -->
   <a href="https://github.com/Jaypph/pi-apps-amd64/network/members">
     <img src="https://img.shields.io/github/forks/Jaypph/pi-apps-amd64?style=social" alt="GitHub Forks">
+  </a>
+  <!-- Open Issues / Bugs -->
+  <a href="https://github.com/Jaypph/pi-apps-amd64/issues">
+    <img src="https://img.shields.io/github/issues/Jaypph/pi-apps-amd64?label=bugs&color=red" alt="Open Issues">
   </a>
   <!-- Repo Views -->
   <a href="https://github.com/Jaypph/pi-apps-amd64">
@@ -40,9 +44,6 @@
   <!-- Downloads -->
   <a href="https://github.com/Jaypph/pi-apps-amd64/releases">
     <img src="https://img.shields.io/github/downloads/Jaypph/pi-apps-amd64/total?style=flat" alt="Downloads">
-  </a>
-  <a href="https://github.com/Jaypph/pi-apps-amd64/issues">
-    <img src="https://img.shields.io/github/issues/Jaypph/pi-apps-amd64?label=bugs&color=red)" alt="Downloads">
   </a>
 </p>
 ---
