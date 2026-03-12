@@ -12,7 +12,39 @@
   <a href="https://github.com/Botspot/pi-apps/issues/new?template=suggestion.yml">Make a general suggestion</a> |
   <a href="https://github.com/Jaypph/pi-apps-amd64/issues/new">Suggest new app</a>
 </p>
-
+<p align="center">
+  <!-- GitHub Stars -->
+  <a href="https://github.com/Jaypph/pi-apps-amd64/stargazers">
+    <img src="https://img.shields.io/github/stars/Jaypph/pi-apps-amd64?style=social" alt="GitHub Stars">
+  </a>
+  <!-- GitHub Forks -->
+  <a href="https://github.com/Jaypph/pi-apps-amd64/network/members">
+    <img src="https://img.shields.io/github/forks/Jaypph/pi-apps-amd64?style=social" alt="GitHub Forks">
+  </a>
+  <!-- Repo Views -->
+  <a href="https://github.com/Jaypph/pi-apps-amd64">
+    <img src="https://visitor-badge.laobi.icu/badge?page_id=Jaypph.pi-apps-amd64" alt="Repo Views">
+  </a>
+  <!-- License -->
+  <a href="https://www.gnu.org/licenses/gpl-3.0">
+    <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="GPLv3 License">
+  </a>
+  <!-- Open Source Love -->
+  <a href="https://opensource.org/">
+    <img src="https://badges.frapsoft.com/os/v1/open-source.svg?v=103" alt="Open Source Love">
+  </a>
+  <!-- Last Commit -->
+  <a href="https://github.com/Jaypph/pi-apps-amd64/commits">
+    <img src="https://img.shields.io/github/last-commit/Jaypph/pi-apps-amd64" alt="Last Commit">
+  </a>
+  <!-- Downloads -->
+  <a href="https://github.com/Jaypph/pi-apps-amd64/releases">
+    <img src="https://img.shields.io/github/downloads/Jaypph/pi-apps-amd64/total?style=flat" alt="Downloads">
+  </a>
+  <a href="https://github.com/Jaypph/pi-apps-amd64/issues">
+    <img src="https://img.shields.io/github/issues/Jaypph/pi-apps-amd64?label=bugs&color=red)" alt="Downloads">
+  </a>
+</p>
 ---
 
 ## Introduction
