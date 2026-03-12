@@ -1,6 +1,6 @@
 name: App Suggestion
 title: EDIT ME Include the app name
-description: Suggest an app to be added Pi-Apps. pi-apps developers may choose to assist in adding your app suggestion.
+description: Suggest an app to be added Pi-Apps-Amd64. pi-apps-amd64 developers may choose to assist in adding your app suggestion.
 labels: App Request
 body:
   - type: input
@@ -36,9 +36,9 @@ body:
       options:
         - label: I have confirmed that this app is legal and not piracy.
           required: true
-        - label: I have read the app eligibilty rubric https://github.com/Botspot/pi-apps/issues/185 and confirmed this app is suitable for addition in Pi-Apps.
+        - label: I have read the app eligibilty rubric https://github.com/Jaypph/pi-apps-amd64/ and confirmed this app is suitable for addition in Pi-Apps.
           required: true  
-        - label: I have confirmed that this app has never been discussed in https://github.com/Botspot/pi-apps/issues and https://github.com/Botspot/pi-apps/pulls, and it is not in the Pi-Apps app list.
+        - label: I have confirmed that this app has never been discussed in https://github.com/Jaypph/pi-apps-amd64/issues and https://github.com/Jaypph/pi-apps-amd64/pulls, and it is not in the Pi-Apps-amd64 app list.
           required: true
-        - label: I have confirmed that this app can run on all [Pi-Apps supported systems](https://pi-apps.io/install/).
+        - label: I have confirmed that this app can run on all AMD64 systems
           required: true
